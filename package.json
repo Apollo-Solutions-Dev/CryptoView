@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "start": "concurrently \"vite\" \"node ./server/server.js\"",
-    "dev": "concurrently \"vite\" \"nodemon ./server/server.js\""
+    "start": "concurrently \"vite\" \"node -r dotenv/config ./server/server.js\"",
+    "dev": "concurrently \"vite\" \"nodemon -r dotenv/config ./server/server.js\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

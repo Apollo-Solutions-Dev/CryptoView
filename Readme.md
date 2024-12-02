@@ -1,5 +1,6 @@
 # CryptoView
-
+Transaction Test Results:
+![Transaction Test Results](/transactions-test.png)
 ## Crypto Trading Platform
 
 This is a simple MERN stack application that displays current prices of cryptocurrencies and allows users to trade them.
@@ -13,20 +14,34 @@ This is a simple MERN stack application that displays current prices of cryptocu
 
 **Getting Started:**
 
-1. **Clone the Repository:**
+1. **Using Docker (Recommended):**
+
+   ```bash
+   # Clone the repository
+   git clone https://github.com/labs-web3/CryptoView.git
+   cd CryptoView
+
+   # Start the MongoDB and Mongo Express containers
+   docker-compose up -d
+
+   # Access MongoDB at localhost:27017
+   # Access Mongo Express dashboard at http://localhost:8081
+   ```
+
+2. **Manual Installation:**
 
    ```bash
    git clone https://github.com/labs-web3/CryptoView.git
    ```
 
-2. **Install Dependencies:**
+3. **Install Dependencies:**
 
    ```bash
    cd CryptoView
    npm install
    ```
 
-3. **Set up Environment Variables:**
+4. **Set up Environment Variables:**
 
    - Create a `.env` file at the root of the project.
    - Add the following environment variables:
@@ -37,13 +52,13 @@ This is a simple MERN stack application that displays current prices of cryptocu
      VITE_X_CG_DEMO_API_KEY=CG-1t8kdBZJMA1YUmpjF5nypF6R
      ```
 
-4. **Start the Server:**
+5. **Start the Server:**
 
    ```bash
    npm start
    ```
 
-5. **Access the Application:**
+6. **Access the Application:**
    Open your browser and navigate to `http://localhost:5173`.
 
 **Project Structure:**
@@ -80,3 +95,5 @@ Contributions are welcome! Please create a pull request with your changes.
 **License:**
 
 This project is licensed under the MIT License.
+
+

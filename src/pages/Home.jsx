@@ -13,11 +13,12 @@ import { Button } from "@/components/ui/button";
 import Categories from "@/components/Categories";
 import CoinsList from "@/components/CoinsList";
 import { InputHome } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Popover } from "react-tiny-popover";
 import { Search } from "lucide-react";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
   const { pageNumber = 1 } = useParams();
@@ -25,6 +26,74 @@ export default function Home() {
   const [searchText, setSearchText] = useState();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [valueHover, setValueHover] = useState({});
+  const [inputValue, setInputValue] = useState("");
+  const [submittedValues, setSubmittedValues] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [token, setToken] = useState(null);
+  const [error, setError] = useState(null);
+
+  // Create user with a new email
+  useEffect(() => {
+    const createUser = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/users/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: `test${Date.now()}@example.com`,
+            password: "Test123!@#"
+          }),
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setToken(data.token);
+          console.log('Signup successful');
+        } else {
+          console.error('Signup failed:', data.message);
+        }
+      } catch (error) {
+        console.error('Error during signup:', error);
+      }
+    };
+
+    createUser();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (inputValue.trim() && token) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/transactions/${inputValue}?startDate=2024-01-01&endDate=2024-03-27`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setTransactions(data);
+          setSubmittedValues([...submittedValues, inputValue]);
+          setInputValue("");
+          setError(null);
+        } else {
+          setError(data.error || 'Failed to fetch transactions');
+        }
+      } catch (error) {
+        console.error('Error submitting value:', error);
+        setError('Failed to submit wallet address');
+      }
+    }
+  };
 
   const setPage = (num) => navigate(`/page/${num}`);
 
@@ -111,15 +180,84 @@ export default function Home() {
     });
   };
 
-  // if (top.loading || trend.loading || categories.loading || query.loading) {
-  //   return <div>Loading...</div>;
-  // }
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
+
+  // Render the input form separately from the rest of the content
+  const renderInputForm = () => (
+    <>
+      <form onSubmit={handleSubmit} className="my-4 flex gap-2">
+        <Input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Enter wallet address"
+          className="p-2 border rounded"
+        />
+        <Button 
+          type="submit" 
+          disabled={!token}
+        >
+          Submit
+        </Button>
+      </form>
+
+      {error && (
+        <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      {transactions.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader>
+            <h3 className="font-bold text-xl text-gray-900">Recent Transactions</h3>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {transactions.map((tx, index) => (
+                <div 
+                  key={tx.hash}
+                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-sm text-gray-700">From</p>
+                      <p className="font-mono truncate text-gray-900">{tx.from}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-700">To</p>
+                      <p className="font-mono truncate text-gray-900">{tx.to}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-700">Value (ETH)</p>
+                      <p className="font-semibold text-gray-900">{Number(tx.value).toFixed(4)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-700">Date</p>
+                      <p className="text-gray-900">{new Date(tx.timestamp).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-700">Transaction Hash</p>
+                    <p className="font-mono text-sm truncate text-gray-900">{tx.hash}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </>
+  );
 
   if (top.error || trend.error || categories.error || query.error) {
     return (
       <div className="container">
+        {renderInputForm()}
         <div className="flex justify-center h-full items-center flex-col space-y-4">
-          <h1 className="text-red-500 text-7xl font-bold">An error occured</h1>
+          <h1 className="text-red-500 text-7xl font-bold">An error occurred</h1>
           <Button
             onClick={handleRefresh}
             className="bg-black text-white font-bold w-1/4 hover:bg-gray-600"
@@ -133,6 +271,7 @@ export default function Home() {
 
   return (
     <div className="container">
+      {renderInputForm()}
       <div className="flex my-5">
         {trend.loading ? (
           <SkeletonCard />

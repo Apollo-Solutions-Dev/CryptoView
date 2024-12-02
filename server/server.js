@@ -1,51 +1,50 @@
-//Config express
 const express = require("express");
 const dotenv = require("dotenv");
-const process = require("process");
-const workoutRoutes = require("./routes/workouts.js");
-const usersRoutes = require("./routes/users.js");
-const transactionsRoutes = require("./routes/Transactions.js");
-const userPortfolio = require("./routes/userPortfolio.js");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const userRoutes = require("./routes/users.js");
+const transactionsRoutes = require("./routes/Transactions.js");
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// configuration cors
-const corsOptions = {
-  origin: ["http://localhost:5173", "https://api.coingecko.com/"],
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
-
-// middleware pour parser le json
+// Middleware
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
 
-// middleware pour logger les requetes
+// Log requests
 app.use((req, res, next) => {
-  console.log(req.path, req.method);
+  console.log(`${req.method} ${req.path}`);
   next();
 });
 
-// routes
-app.use("/api/workouts/", workoutRoutes);
-app.use("/api/portfolio/", userPortfolio);
-app.use("/api/transactions/", transactionsRoutes);
-app.use("/api/users/", usersRoutes);
+// Routes
+app.use("/api/users", userRoutes);
+app.use("/api/transactions", transactionsRoutes);
 
-//connect to db et lancement du server
+// Connect to MongoDB
 mongoose
-  .connect(process.env.MONG_URI)
+  .connect(process.env.MONG_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
-    // listen requests
-    console.log(`connected to db`);
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log("Connected to MongoDB");
+    });
   })
   .catch((error) => {
-    // console.log(error);
+    console.error("MongoDB connection error:", error);
   });
 
-app.listen(process.env.PORT, () => {
-  console.log(`listening on port ${process.env.PORT}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something broke!" });
 });

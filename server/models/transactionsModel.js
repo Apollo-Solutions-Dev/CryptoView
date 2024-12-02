@@ -2,23 +2,28 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const TransactionsSchema = new Schema({
-  id: {
+  address: {
     type: String,
-    unique: true,
-  },
-  quantity: {
-    type: Number,
     required: true,
   },
-  price: {
-    type: Number,
+  hash: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  from: {
+    type: String,
     required: true,
   },
-  spent: {
-    type: Number,
+  to: {
+    type: String,
     required: true,
   },
-  date: {
+  value: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
     type: Date,
     required: true,
   },
@@ -26,7 +31,7 @@ const TransactionsSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
-  },
+  }
 });
 
 module.exports = mongoose.model("Transactions", TransactionsSchema);
